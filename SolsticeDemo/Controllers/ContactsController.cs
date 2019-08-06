@@ -28,9 +28,7 @@ namespace SolsticeDemo.Controllers
         {
             Contact contact = db.Contacts.Find(id);
             if (contact == null)
-            {
                 return NotFound();
-            }
 
             return Ok(contact);
         }
@@ -101,9 +99,46 @@ namespace SolsticeDemo.Controllers
             return Ok(contact);
         }
 
-        private bool ContactExists(int id)
+        private bool ContactExists(int id) => db.Contacts.Count(e => e.Id == id) > 0;
+
+        //SEARCH: email
+        [HttpGet, Route("api/Contacts/byEmail/{email}")]
+        [ResponseType(typeof(Contact))]
+        private IHttpActionResult GetByEmail(string email) => 
+            ReturnValidContact(db.Contacts.FirstOrDefault(e => e.Email.Equals(email)));
+
+        //SEARCH: phone number
+        [HttpGet, Route("api/Contacts/byPhoneNumber/{phone}")]
+        [ResponseType(typeof(Contact))]
+        private IHttpActionResult GetByPhoneNumber(int  phone) => 
+            ReturnValidContact(db.Contacts.FirstOrDefault(e => e.PhoneNumber.Equals(phone)));
+
+        //SEARCH: all contacts by states
+        [HttpGet, Route("api/Contacts/byState/{state}")]
+        [ResponseType(typeof(List<Contact>))]
+        private IHttpActionResult GetByState(string state) =>
+            ReturnValidContact(db.Contacts.Where(e => e.Address.State.Equals(state)));
+
+        //SEARCH: all contacts by City
+        [HttpGet, Route("api/Contacts/byCity/{city}")]
+        [ResponseType(typeof(List<Contact>))]
+        private IHttpActionResult GetByCity(string city) =>
+            ReturnValidContact(db.Contacts.Where(e => e.Address.City.Equals(city)));
+        
+        [ResponseType(typeof(List<Contact>))]
+        private IHttpActionResult ReturnValidContact(IQueryable<Contact> contact)
         {
-            return db.Contacts.Count(e => e.Id == id) > 0;
+            if (contact == null || contact.Count() == 0)
+                return NotFound();
+            return Ok(contact);
+        }
+        
+        [ResponseType(typeof(Contact))]
+        private IHttpActionResult ReturnValidContact(Contact contact)
+        {
+            if (contact == null) 
+                return NotFound();
+            return Ok(contact);
         }
     }
 }
